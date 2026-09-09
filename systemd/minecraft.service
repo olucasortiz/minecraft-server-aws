@@ -1,0 +1,23 @@
+[Unit]
+Description=Minecraft Paper Server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=minecraft
+Group=minecraft
+WorkingDirectory=/opt/minecraft/server
+ExecStart=/usr/bin/java -Xms2G -Xmx6G -jar /opt/minecraft/server/paper.jar --nogui
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=120
+KillSignal=SIGINT
+SuccessExitStatus=0 130 143
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+LimitNOFILE=100000
+
+[Install]
+WantedBy=multi-user.target

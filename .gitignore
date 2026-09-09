@@ -1,0 +1,32 @@
+# SSH private keys and certificates
+*.pem
+*.key
+*.ppk
+id_rsa
+id_ed25519
+
+# Cloud and application credentials
+.env
+.env.*
+credentials
+credentials.*
+*.crt
+*.p12
+*.pfx
+
+# Minecraft runtime data
+world/
+world_*/
+logs/
+backups/
+*.jar
+whitelist.json
+ops.json
+usercache.json
+banned-ips.json
+banned-players.json
+
+# Local/editor files
+.vscode/
+.idea/
+*.log
