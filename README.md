@@ -1,83 +1,45 @@
 # Minecraft Server Infrastructure on AWS
 
-Projeto de infraestrutura Cloud/DevOps para provisionamento e operação de um servidor Minecraft Java com PaperMC em uma instância Amazon EC2, aplicando administração Linux, gerenciamento de serviços, segurança e automação de backups.
+Projeto de Cloud/DevOps criado a partir de uma necessidade real: hospedar e administrar um servidor Minecraft privado utilizando infraestrutura em nuvem, aplicando conceitos de Linux, redes, segurança e automação na AWS.
 
-## Configuração
+## Contexto
 
-| Item | Configuração |
-|---|---|
-| Sistema | Ubuntu 26.04 |
-| Java | OpenJDK 25 |
-| Minecraft | 26.2 |
-| Servidor | PaperMC |
-| Porta | TCP 25565 |
-| Memória JVM | 2–6 GiB |
-| Gamemode | Survival |
-| Dificuldade | Normal |
-| Autenticação | Online mode |
-| Controle de acesso | Whitelist |
-| RCON | Desabilitado |
-| Query | Desabilitado |
+Meu irmão queria jogar Minecraft com amigos, mas não tinha familiaridade com hospedagem de servidores, configuração de rede ou administração de infraestrutura.
+
+Vi nisso uma oportunidade de transformar uma necessidade real em um projeto prático.
+
+Durante a faculdade, na disciplina de Tópicos Computacionais, tive contato com conceitos de computação em nuvem utilizando Oracle Cloud. Decidi aplicar esses conhecimentos em um ambiente diferente, utilizando a AWS e assumindo a configuração e operação do servidor.
+
+Em vez de contratar uma hospedagem de Minecraft pronta, configurei uma instância Amazon EC2 com Ubuntu para executar e administrar o servidor diretamente.
+
+O que começou como uma forma de facilitar o acesso ao jogo se tornou um laboratório prático de Cloud/DevOps.
 
 ## Objetivo
 
-Demonstrar uma implantação simples e operável de um serviço Java persistente: acesso administrativo por SSH, execução com usuário dedicado, gerenciamento por systemd e backup diário automatizado em Bash.
+Construir e operar um servidor Minecraft Java persistente na AWS, aplicando na prática conceitos de:
+
+- infraestrutura em nuvem;
+- administração Linux;
+- acesso remoto via SSH;
+- redes e controle de acesso;
+- gerenciamento de serviços com systemd;
+- execução da aplicação com usuário dedicado;
+- automação de backups;
+- troubleshooting e monitoramento por logs.
 
 ## Arquitetura
 
 ```mermaid
 flowchart LR
-    Player[Jogador Minecraft] -->|TCP 25565| EC2[AWS EC2 / Ubuntu]
-    Admin[Administrador] -->|SSH 22| EC2
+    Player[Jogadores] -->|TCP 25565| SG[Security Group]
+    SG --> EC2[Amazon EC2 / Ubuntu]
+
+    Admin[Administrador] -->|SSH 22| SG
+    SG --> EC2
+
     EC2 --> Systemd[systemd]
-    Systemd --> Paper[PaperMC + Java]
+    Systemd --> Paper[Java + PaperMC]
     Paper --> World[Dados do servidor]
-    Timer[systemd timer] --> Backup[Bash backup]
-    Backup --> Archive[Arquivos tar.gz locais]
-```
 
-## Tecnologias realmente utilizadas
-
-- AWS EC2
-- Ubuntu 26.04
-- SSH
-- Java OpenJDK 25
-- PaperMC 26.2 build 121
-- systemd
-- Bash e `tar`
-
-## Implementação confirmada
-
-- Serviço `minecraft.service` habilitado e em execução.
-- Paper executado pelo usuário dedicado `minecraft` em `/opt/minecraft/server`.
-- Heap Java configurado com `-Xms2G` e `-Xmx6G`.
-- Listener TCP em `*:25565`.
-- Backup diário por `minecraft-backup.timer`, às 06:00 UTC.
-
-Consulte [AUDIT.md](AUDIT.md) para os valores confirmados e [docs/operations.md](docs/operations.md) para operação diária.
-
-## Segurança
-
-O serviço não executa como root, usa `NoNewPrivileges=true`, `PrivateTmp=true` e `UMask=0027`. O modo online e a whitelist estão habilitados; RCON e query estão desativados. Não há chaves, IPs ou dados de jogadores versionados neste repositório.
-
-## Operação e backup
-
-O backup usa uma parada controlada do serviço, cria um arquivo `tar.gz`, retém os sete arquivos mais recentes e reinicia o servidor se ele estava ativo. Os comandos de operação estão em [docs/operations.md](docs/operations.md).
-
-## Troubleshooting
-
-Use os logs do unit systemd e valide o listener local. Consulte [docs/troubleshooting.md](docs/troubleshooting.md).
-
-## Aprendizados
-
-- Separar o usuário de execução do usuário administrativo reduz privilégio desnecessário.
-- systemd fornece inicialização no boot, reinício em falha e logs centralizados sem painel adicional.
-- Backups consistentes importam mais que apenas copiar arquivos de mundo em uso.
-- Documentação sanitizada permite demonstrar a arquitetura sem expor a operação real.
-
-## Roadmap
-
-- Provisionamento com Terraform.
-- Métricas e logs com CloudWatch.
-- Alertas de custo.
-- Teste periódico de restore de backup.
+    Timer[systemd timer] --> Backup[backup.sh]
+    Backup --> Archive[Backups tar.gz]
